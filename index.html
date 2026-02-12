@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lista de Compras</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#faf6ed;--fg:#3d3427;--card:#f5eedf;--card-fg:#3d3427;
+  --primary:#d4872c;--primary-fg:#fff;
+  --secondary:#ede5d4;--secondary-fg:#4a3f30;
+  --muted:#e8dfd0;--muted-fg:#8a7e6e;
+  --accent:#3ea854;--accent-fg:#fff;
+  --destructive:#d94848;--destructive-fg:#fff;
+  --border:#d6ccb8;--ring:#d4872c;
+  --paper-line:#c5cdd8;--paper-margin:#e06060;
+  --radius:12px;
+}
+.dark{
+  --bg:#1c2028;--fg:#e8dcc8;--card:#252a33;--card-fg:#e8dcc8;
+  --primary:#e09a3a;--primary-fg:#1a1610;
+  --secondary:#2e333d;--secondary-fg:#ccc0ab;
+  --muted:#2a2f38;--muted-fg:#7a7468;
+  --accent:#35a34a;--accent-fg:#fff;
+  --destructive:#c04040;--destructive-fg:#fff;
+  --border:#363b45;--ring:#e09a3a;
+  --paper-line:#2e333d;--paper-margin:#8c4040;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--fg);-webkit-font-smoothing:antialiased;transition:background .3s,color .3s}
+input{font-family:inherit;font-size:inherit}
+button{cursor:pointer;font-family:inherit;border:none;background:none}
+
+.app{max-width:480px;margin:0 auto;min-height:100vh;position:relative}
+header{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--card) 85%,transparent);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;justify-content:space-between}
+header h1{font-size:18px;font-weight:700;letter-spacing:-.3px}
+.hdr-actions{display:flex;align-items:center;gap:6px}
+.icon-btn{padding:8px;border-radius:50%;transition:background .15s;display:flex;align-items:center;justify-content:center}
+.icon-btn:hover{background:var(--secondary)}
+.lang-label{font-size:11px;font-weight:600;color:var(--muted-fg);text-transform:uppercase}
+
+main{padding:16px;padding-bottom:80px}
+
+.btn-primary{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;background:var(--primary);color:var(--primary-fg);border-radius:var(--radius);padding:14px;font-weight:600;font-size:15px;box-shadow:0 2px 12px -3px rgba(0,0,0,.12);transition:opacity .15s,transform .1s}
+.btn-primary:active{transform:scale(.98)}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 2px 12px -4px rgba(0,0,0,.08);overflow:hidden;margin-bottom:8px;transition:background .3s}
+
+.new-form{padding:16px;animation:fadeSlide .2s ease}
+.new-form input{width:100%;background:transparent;border:none;outline:none;color:var(--fg);font-size:15px;font-weight:500;margin-bottom:12px}
+.new-form input::placeholder{color:var(--muted-fg)}
+.form-btns{display:flex;gap:8px}
+.form-btns button{flex:1;padding:10px;border-radius:10px;font-size:13px;font-weight:600;transition:opacity .15s}
+.btn-confirm{background:var(--primary);color:var(--primary-fg)}
+.btn-cancel{background:var(--secondary);color:var(--secondary-fg)}
+.btn-danger{background:var(--destructive);color:var(--destructive-fg)}
+
+.empty{text-align:center;padding:60px 20px;color:var(--muted-fg)}
+.empty svg{width:56px;height:56px;margin:0 auto 16px;opacity:.35}
+
+.list-row{display:flex;align-items:center;transition:background .1s}
+.list-row:active{background:var(--secondary)}
+.list-info{flex:1;padding:14px 16px;text-align:left;min-width:0}
+.list-info p:first-child{font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.list-info p:last-child{font-size:11px;color:var(--muted-fg);margin-top:2px}
+.list-actions{display:flex;gap:2px;padding-right:10px}
+.sm-btn{padding:8px;border-radius:8px;transition:background .15s;display:flex;align-items:center;justify-content:center}
+.sm-btn:hover{background:var(--secondary)}
+.sm-btn.danger:hover{background:rgba(217,72,72,.1)}
+
+.edit-row{display:flex;align-items:center;gap:8px;padding:12px 16px;animation:fadeIn .15s}
+.edit-row input{flex:1;background:transparent;border:none;outline:none;color:var(--fg);font-size:15px;font-weight:500}
+.mini-btn{padding:6px;border-radius:8px;display:flex;align-items:center;justify-content:center}
+.mini-btn.green{background:var(--accent);color:var(--accent-fg)}
+.mini-btn.gray{background:var(--secondary);color:var(--secondary-fg)}
+
+.confirm-row{padding:14px 16px;animation:fadeIn .15s}
+.confirm-row p{font-size:13px;margin-bottom:10px}
+
+/* Detail */
+.detail-header{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.back-btn{padding:8px;margin-left:-8px;border-radius:10px;transition:background .15s;display:flex;align-items:center}
+.back-btn:hover{background:var(--secondary)}
+.back-btn svg{color:var(--primary)}
+.detail-title{flex:1;display:flex;align-items:center;gap:6px;min-width:0}
+.detail-title h2{font-size:18px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.add-row{display:flex;gap:8px;margin-bottom:12px}
+.add-row input{flex:1;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;color:var(--fg);font-size:14px;outline:none;transition:box-shadow .15s}
+.add-row input:focus{box-shadow:0 0 0 2px var(--ring)}
+.add-row input::placeholder{color:var(--muted-fg)}
+.add-row button{background:var(--primary);color:var(--primary-fg);border-radius:var(--radius);padding:12px 16px;transition:opacity .15s,transform .1s}
+.add-row button:active{transform:scale(.93)}
+
+.paper{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  box-shadow:0 2px 12px -4px rgba(0,0,0,.08);overflow:hidden;
+  background-image:repeating-linear-gradient(transparent,transparent 31px,var(--paper-line) 31px,var(--paper-line) 32px);
+  background-size:100% 32px;
+  border-left:3px solid var(--paper-margin);
+  padding-left:12px;
+}
+.item-row{min-height:32px;display:flex;align-items:center;padding-right:10px;line-height:32px}
+.check-btn{padding:4px;margin-right:4px;flex-shrink:0;display:flex;align-items:center;transition:transform .1s}
+.check-btn:active{transform:scale(.85)}
+.item-name{flex:1;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .2s}
+.item-name.checked{text-decoration:line-through;color:var(--muted-fg)}
+.item-actions{display:flex;gap:1px;flex-shrink:0}
+.xs-btn{padding:6px;border-radius:6px;transition:background .15s;display:flex;align-items:center}
+.xs-btn:hover{background:var(--secondary)}
+.xs-btn.danger:hover{background:rgba(217,72,72,.1)}
+
+.summary{text-align:center;font-size:12px;color:var(--muted-fg);margin-top:12px}
+
+.del-confirm-inline{flex:1;display:flex;align-items:center;gap:6px;padding:2px 0;animation:fadeIn .15s}
+.del-confirm-inline span{font-size:12px;flex:1}
+.del-confirm-inline button{padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600}
+
+@keyframes fadeSlide{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+</style>
+</head>
+<body>
+
+<div class="app" id="app"></div>
+
+<script>
+const T = {
+  pt: { appTitle:'Lista de Compras', newList:'Nova Lista', listName:'Nome da lista', itemName:'Nome do item', edit:'Editar', delete:'Excluir', save:'Salvar', cancel:'Cancelar', confirm:'Confirmar', deleteConfirm:'Tem certeza?', noLists:'Nenhuma lista ainda. Crie uma!', noItems:'Nenhum item. Adicione um!', items:'itens', bought:'comprados', back:'Voltar', create:'Criar' },
+  en: { appTitle:'Shopping List', newList:'New List', listName:'List name', itemName:'Item name', edit:'Edit', delete:'Delete', save:'Save', cancel:'Cancel', confirm:'Confirm', deleteConfirm:'Are you sure?', noLists:'No lists yet. Create one!', noItems:'No items. Add one!', items:'items', bought:'bought', back:'Back', create:'Create' }
+};
+
+let state = {
+  lists: JSON.parse(localStorage.getItem('sl-lists') || '[]'),
+  activeId: null,
+  lang: localStorage.getItem('sl-lang') || 'pt',
+  dark: localStorage.getItem('sl-theme') === 'dark',
+  showNew: false, newName: '',
+  editingListId: null, editListName: '',
+  deletingListId: null,
+  newItem: '',
+  editingItemId: null, editItemName: '',
+  deletingItemId: null,
+  editingTitle: false, titleName: '',
+  confirmDeleteList: false
+};
+
+const t = k => T[state.lang][k];
+const save = () => localStorage.setItem('sl-lists', JSON.stringify(state.lists));
+const genId = () => Math.random().toString(36).slice(2,10);
+const app = document.getElementById('app');
+
+const svg = {
+  cart: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 002 1.58h9.78a2 2 0 001.95-1.57l1.65-7.43H5.12"/></svg>`,
+  pkg: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>`,
+  plus: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`,
+  pencil: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.83 2.83 0 114 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>`,
+  trash: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>`,
+  check: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+  x: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
+  arrow: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>`,
+  sun: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>`,
+  moon: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>`,
+  globe: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/></svg>`,
+  circleCheck: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14" stroke="currentColor"/><polyline points="22 4 12 14.01 9 11.01" stroke="currentColor"/></svg>`,
+  circle: `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/></svg>`
+};
+
+function render() {
+  document.documentElement.classList.toggle('dark', state.dark);
+  const list = state.lists.find(l => l.id === state.activeId);
+  app.innerHTML = `
+    <header>
+      <h1>🛒 ${t('appTitle')}</h1>
+      <div class="hdr-actions">
+        <button class="icon-btn" onclick="toggleLang()">${svg.globe}</button>
+        <span class="lang-label">${state.lang}</span>
+        <button class="icon-btn" onclick="toggleTheme()">${state.dark ? svg.sun : svg.moon}</button>
+      </div>
+    </header>
+    <main>${list ? renderDetail(list) : renderLists()}</main>
+  `;
+}
+
+function renderLists() {
+  let html = '';
+  if (state.showNew) {
+    html += `<div class="card new-form">
+      <input id="newNameInput" value="${esc(state.newName)}" placeholder="${t('listName')}" onkeydown="if(event.key==='Enter')addList()" oninput="state.newName=this.value">
+      <div class="form-btns">
+        <button class="btn-confirm" onclick="addList()">${t('create')}</button>
+        <button class="btn-cancel" onclick="state.showNew=false;state.newName='';render()">${t('cancel')}</button>
+      </div>
+    </div>`;
+  } else {
+    html += `<button class="btn-primary" onclick="state.showNew=true;render();setTimeout(()=>document.getElementById('newNameInput')?.focus(),50)">${svg.plus} ${t('newList')}</button>`;
+  }
+
+  if (state.lists.length === 0) {
+    html += `<div class="empty">${svg.cart}<p>${t('noLists')}</p></div>`;
+  } else {
+    state.lists.forEach(l => {
+      const bc = l.items.filter(i=>i.checked).length;
+      if (state.deletingListId === l.id) {
+        html += `<div class="card confirm-row"><p>${t('deleteConfirm')}</p><div class="form-btns"><button class="btn-danger" onclick="deleteList('${l.id}')">${t('confirm')}</button><button class="btn-cancel" onclick="state.deletingListId=null;render()">${t('cancel')}</button></div></div>`;
+      } else if (state.editingListId === l.id) {
+        html += `<div class="card edit-row"><input id="editListInput" value="${esc(state.editListName)}" oninput="state.editListName=this.value" onkeydown="if(event.key==='Enter')renameList('${l.id}')"><button class="mini-btn green" onclick="renameList('${l.id}')">${svg.check}</button><button class="mini-btn gray" onclick="state.editingListId=null;render()">${svg.x}</button></div>`;
+      } else {
+        html += `<div class="card"><div class="list-row">
+          <button class="list-info" onclick="openList('${l.id}')"><p>${esc(l.name)}</p><p>${l.items.length} ${t('items')} · ${bc} ${t('bought')}</p></button>
+          <div class="list-actions">
+            <button class="sm-btn" onclick="state.editingListId='${l.id}';state.editListName='${esc(l.name)}';render();setTimeout(()=>document.getElementById('editListInput')?.focus(),50)">${svg.pencil}</button>
+            <button class="sm-btn danger" onclick="state.deletingListId='${l.id}';render()" style="color:var(--destructive)">${svg.trash}</button>
+          </div>
+        </div></div>`;
+      }
+    });
+  }
+  return html;
+}
+
+function renderDetail(list) {
+  const sorted = [...list.items].sort((a,b)=>a.checked-b.checked);
+  let hdr = `<div class="detail-header">
+    <button class="back-btn" onclick="state.activeId=null;state.confirmDeleteList=false;render()">${svg.arrow}</button>`;
+  if (state.editingTitle) {
+    hdr += `<div class="detail-title"><input id="titleInput" value="${esc(state.titleName)}" oninput="state.titleName=this.value" onkeydown="if(event.key==='Enter')saveTitle('${list.id}')" style="flex:1;background:transparent;border:none;outline:none;color:var(--fg);font-size:18px;font-weight:700"><button class="mini-btn green" onclick="saveTitle('${list.id}')">${svg.check}</button><button class="mini-btn gray" onclick="state.editingTitle=false;render()">${svg.x}</button></div>`;
+  } else {
+    hdr += `<div class="detail-title"><h2>${esc(list.name)}</h2><button class="xs-btn" onclick="state.editingTitle=true;state.titleName='${esc(list.name)}';render();setTimeout(()=>document.getElementById('titleInput')?.focus(),50)">${svg.pencil}</button></div>`;
+  }
+  if (state.confirmDeleteList) {
+    hdr += `<button class="mini-btn" style="background:var(--destructive);color:var(--destructive-fg);padding:4px 10px;border-radius:8px;font-size:11px;font-weight:600" onclick="deleteCurrentList()">${t('confirm')}</button><button class="mini-btn gray" onclick="state.confirmDeleteList=false;render()">${svg.x}</button>`;
+  } else {
+    hdr += `<button class="xs-btn danger" onclick="state.confirmDeleteList=true;render()" style="color:var(--destructive)">${svg.trash}</button>`;
+  }
+  hdr += `</div>`;
+
+  let addRow = `<div class="add-row">
+    <input id="newItemInput" value="${esc(state.newItem)}" placeholder="${t('itemName')}" oninput="state.newItem=this.value" onkeydown="if(event.key==='Enter')addItem('${list.id}')">
+    <button onclick="addItem('${list.id}')">${svg.plus}</button>
+  </div>`;
+
+  let items = '';
+  if (sorted.length === 0) {
+    items = `<div class="card" style="padding:48px 20px;text-align:center"><div style="color:var(--muted-fg);opacity:.4;margin-bottom:12px">${svg.pkg}</div><p style="color:var(--muted-fg);font-size:13px">${t('noItems')}</p></div>`;
+  } else {
+    items = `<div class="paper">`;
+    sorted.forEach(item => {
+      if (state.deletingItemId === item.id) {
+        items += `<div class="item-row"><div class="del-confirm-inline"><span>${t('deleteConfirm')}</span><button class="btn-danger" style="font-size:11px;padding:4px 10px;border-radius:6px" onclick="deleteItem('${list.id}','${item.id}')">${t('confirm')}</button><button class="btn-cancel" style="font-size:11px;padding:4px 8px;border-radius:6px" onclick="state.deletingItemId=null;render()">${svg.x}</button></div></div>`;
+      } else if (state.editingItemId === item.id) {
+        items += `<div class="item-row"><div class="del-confirm-inline"><input id="editItemInput" value="${esc(state.editItemName)}" oninput="state.editItemName=this.value" onkeydown="if(event.key==='Enter')renameItem('${list.id}','${item.id}')" style="flex:1;background:transparent;border:none;outline:none;color:var(--fg);font-size:14px"><button class="mini-btn green" onclick="renameItem('${list.id}','${item.id}')">${svg.check}</button><button class="mini-btn gray" onclick="state.editingItemId=null;render()">${svg.x}</button></div></div>`;
+      } else {
+        const chk = item.checked;
+        items += `<div class="item-row">
+          <button class="check-btn" onclick="toggleItem('${list.id}','${item.id}')" style="color:${chk?'var(--accent)':'var(--muted-fg)'}">${chk?svg.circleCheck:svg.circle}</button>
+          <span class="item-name${chk?' checked':''}">${esc(item.name)}</span>
+          <div class="item-actions">
+            <button class="xs-btn" onclick="state.editingItemId='${item.id}';state.editItemName='${esc(item.name)}';render();setTimeout(()=>document.getElementById('editItemInput')?.focus(),50)">${svg.pencil}</button>
+            <button class="xs-btn danger" onclick="state.deletingItemId='${item.id}';render()" style="color:var(--destructive)">${svg.trash}</button>
+          </div>
+        </div>`;
+      }
+    });
+    items += `</div>`;
+  }
+
+  let summary = '';
+  if (list.items.length > 0) {
+    summary = `<p class="summary">${list.items.filter(i=>i.checked).length}/${list.items.length} ${t('bought')}</p>`;
+  }
+
+  return hdr + addRow + items + summary;
+}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')}
+
+function toggleLang(){state.lang=state.lang==='pt'?'en':'pt';localStorage.setItem('sl-lang',state.lang);render()}
+function toggleTheme(){state.dark=!state.dark;localStorage.setItem('sl-theme',state.dark?'dark':'light');render()}
+
+function addList(){if(state.newName.trim()){state.lists.unshift({id:genId(),name:state.newName.trim(),items:[],createdAt:Date.now()});state.newName='';state.showNew=false;state.activeId=state.lists[0].id;save();render()}}
+function deleteList(id){state.lists=state.lists.filter(l=>l.id!==id);state.deletingListId=null;save();render()}
+function renameList(id){if(state.editListName.trim()){const l=state.lists.find(x=>x.id===id);if(l)l.name=state.editListName.trim();state.editingListId=null;save();render()}}
+function openList(id){state.activeId=id;state.editingTitle=false;state.confirmDeleteList=false;state.newItem='';state.editingItemId=null;state.deletingItemId=null;render()}
+function deleteCurrentList(){state.lists=state.lists.filter(l=>l.id!==state.activeId);state.activeId=null;state.confirmDeleteList=false;save();render()}
+function saveTitle(id){if(state.titleName.trim()){const l=state.lists.find(x=>x.id===id);if(l)l.name=state.titleName.trim();state.editingTitle=false;save();render()}}
+
+function addItem(lid){if(state.newItem.trim()){const l=state.lists.find(x=>x.id===lid);if(l){l.items.push({id:genId(),name:state.newItem.trim(),checked:false});state.newItem='';save();render();setTimeout(()=>document.getElementById('newItemInput')?.focus(),50)}}}
+function toggleItem(lid,iid){const l=state.lists.find(x=>x.id===lid);if(l){const i=l.items.find(x=>x.id===iid);if(i)i.checked=!i.checked;save();render()}}
+function deleteItem(lid,iid){const l=state.lists.find(x=>x.id===lid);if(l){l.items=l.items.filter(x=>x.id!==iid);state.deletingItemId=null;save();render()}}
+function renameItem(lid,iid){if(state.editItemName.trim()){const l=state.lists.find(x=>x.id===lid);if(l){const i=l.items.find(x=>x.id===iid);if(i)i.name=state.editItemName.trim()}state.editingItemId=null;save();render()}}
+
+render();
+</script>
+</body>
+</html>

@@ -320,13 +320,15 @@
     .item-actions {
       display: flex;
       gap: 8px;
-      opacity: 0;
-      transition: opacity 0.2s;
+      /* opacity: 0; removed for mobile/better UX */
+      /* transition: opacity 0.2s; */
     }
 
+    /*
     .item-row:hover .item-actions {
       opacity: 1;
     }
+    */
 
     .action-btn {
       width: 28px;
@@ -339,14 +341,34 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
+      flex-shrink: 0;
+      /* Prevent shrinking on mobile */
     }
 
     .action-btn:hover {
       background: rgba(255, 255, 255, 0.2);
     }
 
+    .action-btn.del {
+      background: rgba(239, 68, 68, 0.1);
+      /* Subtle red background */
+      color: #ef4444;
+      /* Explicit red text */
+    }
+
     .action-btn.del:hover {
       background: #ef4444;
+      color: white;
+    }
+
+    body.light-mode .action-btn.del {
+      background: rgba(239, 68, 68, 0.1);
+      color: #dc2626;
+    }
+
+    body.light-mode .action-btn.del:hover {
+      background: #dc2626;
+      color: white;
     }
 
     /* --- BOTTOM BAR --- */
@@ -374,6 +396,8 @@
 
     .smart-input {
       flex: 1;
+      width: 0;
+      /* Fix flex overflow */
       background: transparent;
       border: none;
       outline: none;
@@ -397,6 +421,8 @@
       box-shadow: 0 4px 12px var(--accent-glow);
       transition: transform 0.2s;
       cursor: pointer;
+      flex-shrink: 0;
+      /* Prevent shrinking on mobile */
     }
 
     .add-btn:active {
@@ -692,7 +718,7 @@
           </div>
         </div>
         <div class="item-actions">
-           <button class="action-btn del" onclick="deleteItem('${item.id}')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
+           <button class="action-btn del" onclick="deleteItem('${item.id}')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
         </div>
       </div>`;
         });
@@ -731,7 +757,7 @@
       <div class="list-card glass" onclick="openList('${list.id}')">
         <div class="list-header">
           <input class="list-name" value="${list.name}" onclick="event.stopPropagation()" onchange="renameList('${list.id}', this.value)">
-          <button class="action-btn del" onclick="event.stopPropagation(); deleteList('${list.id}')" style="width:24px;height:24px;background:transparent"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+          <button class="action-btn del" onclick="event.stopPropagation(); deleteList('${list.id}')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
         </div>
         <div class="list-meta">
           <span>${total} itens</span>

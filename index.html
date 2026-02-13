@@ -10,6 +10,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet">
+  <!-- Firebase SDKs (v10 compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <style>
     /* --- RESET & BASE --- */
     *,
@@ -126,7 +130,8 @@
       font-family: var(--font);
       background: var(--bg-grad);
       color: var(--text-primary);
-      min-height: 100vh;
+      height: 100vh;
+      /* Fixed height for scroll */
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -288,6 +293,8 @@
     .item-content {
       flex: 1;
       min-width: 0;
+      cursor: pointer;
+      /* Clickable */
     }
 
     .item-name {
@@ -329,6 +336,41 @@
       opacity: 1;
     }
     */
+
+    .user-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--icon-highlight);
+      border: 1px solid var(--glass-border);
+      overflow: hidden;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .user-btn img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .user-status {
+      width: 8px;
+      height: 8px;
+      background: #ef4444;
+      border-radius: 50%;
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      border: 1px solid var(--drawer-bg);
+    }
+
+    .user-btn.online .user-status {
+      background: #10b981;
+    }
 
     .action-btn {
       width: 28px;
@@ -499,6 +541,191 @@
       box-shadow: 0 4px 12px var(--accent-glow);
       pointer-events: none;
       animation: popIn 0.3s;
+      animation: popIn 0.3s;
+    }
+
+    /* --- LOGIN SCREEN --- */
+    .login-screen {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.5s ease, visibility 0.5s;
+    }
+
+    /* Floating blobs animation */
+    .login-bg-blob {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.4;
+      animation: float 10s infinite ease-in-out;
+    }
+
+    .blob-1 {
+      width: 300px;
+      height: 300px;
+      background: var(--primary);
+      top: -10%;
+      left: -10%;
+      animation-delay: 0s;
+    }
+
+    .blob-2 {
+      width: 250px;
+      height: 250px;
+      background: var(--accent);
+      bottom: -10%;
+      right: -10%;
+      animation-delay: -5s;
+    }
+
+    @keyframes float {
+
+      0%,
+      100% {
+        transform: translate(0, 0);
+      }
+
+      50% {
+        transform: translate(30px, 50px);
+      }
+    }
+
+    .login-screen.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    body.light-mode .login-screen {
+      background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    }
+
+    .login-content {
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      padding: 48px;
+      border-radius: 32px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      text-align: center;
+      box-shadow: 0 32px 64px rgba(0, 0, 0, 0.4);
+      max-width: 90%;
+      width: 380px;
+      position: relative;
+      overflow: hidden;
+      z-index: 10;
+    }
+
+    /* Active border gradient */
+    .login-content::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 32px;
+      padding: 1.5px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0));
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      pointer-events: none;
+    }
+
+    body.light-mode .login-content {
+      background: rgba(255, 255, 255, 0.65);
+      border-color: rgba(255, 255, 255, 0.6);
+      box-shadow: 0 32px 64px rgba(0, 0, 0, 0.1);
+    }
+
+    .login-logo {
+      width: 88px;
+      height: 88px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 32px;
+      box-shadow: 0 16px 32px rgba(16, 185, 129, 0.3);
+      transform: rotate(-5deg);
+      transition: transform 0.3s;
+    }
+
+    .login-content:hover .login-logo {
+      transform: rotate(0deg) scale(1.05);
+    }
+
+    .login-title {
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -1px;
+    }
+
+    body.light-mode .login-title {
+      background: linear-gradient(135deg, #1e293b 0%, #475569 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .login-desc {
+      color: var(--text-secondary);
+      margin-bottom: 40px;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+
+    .btn-google {
+      width: 100%;
+      background: white;
+      color: #1f2937;
+      border: none;
+      padding: 14px;
+      border-radius: 16px;
+      font-weight: 600;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-google::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.05);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .btn-google:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-google:hover::after {
+      opacity: 1;
+    }
+
+    .btn-google:active {
+      transform: scale(0.97);
     }
 
     @keyframes slideIn {
@@ -539,6 +766,41 @@
 
 <body data-theme="slate">
 
+  <!-- LOGIN SCREEN (Initial State: Visible) -->
+  <div class="login-screen" id="loginScreen">
+    <div class="login-bg-blob blob-1"></div>
+    <div class="login-bg-blob blob-2"></div>
+    <div class="login-content">
+      <div class="login-logo">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+          <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"></path>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <path d="M16 10a4 4 0 01-8 0"></path>
+        </svg>
+      </div>
+      <h1 class="login-title">Lista de Compras</h1>
+      <p class="login-desc">Sua lista inteligente, sincronizada e bonita. Entre para começar.</p>
+
+      <button class="btn-google" onclick="handleUserAction()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="none">
+          <path
+            d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+            fill="#4285F4" />
+          <path
+            d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+            fill="#34A853" />
+          <path
+            d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+            fill="#FBBC05" />
+          <path
+            d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+            fill="#EA4335" />
+        </svg>
+        Entrar com Google
+      </button>
+    </div>
+  </div>
+
   <header class="app-header glass">
     <div class="header-title-group">
       <div class="header-icon">
@@ -550,7 +812,15 @@
       </div>
       <div class="app-title">Lista de Compras</div>
     </div>
-    <div style="display:flex;gap:8px">
+    <div style="display:flex;gap:8px;align-items:center">
+      <div class="user-btn" id="userBtn" onclick="handleUserAction()" style="position:relative">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          class="user-icon-default">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+        <div class="user-status"></div>
+      </div>
       <button class="action-btn" onclick="toggleMode()" id="modeToggleBtn">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
           class="sun-icon">
@@ -612,6 +882,23 @@
 
   <script>
     // --- DATA & STATE ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyD4euCkvc0ifpu3ZzAgzyD6eROnqOfY3MM",
+      authDomain: "compras-37b98.firebaseapp.com",
+      projectId: "compras-37b98",
+      storageBucket: "compras-37b98.firebasestorage.app",
+      messagingSenderId: "229833548671",
+      appId: "1:229833548671:web:2db47b34bda12a6ee7704a",
+      measurementId: "G-F8CKZZVZ25"
+    };
+
+    // Initialize Firebase
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
     const THEMES = [
       { id: 'slate', c: '#1E293B' }, { id: 'ocean', c: '#1e3a8a' }, { id: 'forest', c: '#14532d' },
       { id: 'burgundy', c: '#7f1d1d' }, { id: 'purple', c: '#581c87' }, { id: 'gold', c: '#713f12' },
@@ -630,42 +917,105 @@
     };
 
     let appState = {
-      lists: JSON.parse(localStorage.getItem('sl-lists-v2') || '[]'),
+      user: null,
+      rawLists: [],
+      rawItems: [],
+      lists: [], // Computed for UI
       activeListId: null,
       theme: localStorage.getItem('sl-theme-v2') || 'slate',
-      mode: localStorage.getItem('sl-mode-v1') || 'dark'
+      mode: localStorage.getItem('sl-mode-v1') || 'dark',
+      unsubscribeLists: null,
+      unsubscribeItems: null
     };
+    async function checkAndMigrate(user) {
+      const oldRef = db.collection('users').doc(user.uid).collection('shopping').doc('data');
+      const doc = await oldRef.get();
+      if (doc.exists) {
+        const data = doc.data();
+        if (data.lists && data.lists.length > 0) {
+          console.log("Migrating data...");
+          const batch = db.batch();
 
-    // --- MIGRATION (V1 -> V2) ---
-    if (!localStorage.getItem('sl-lists-v2') && localStorage.getItem('sl-lists')) {
-      try {
-        const old = JSON.parse(localStorage.getItem('sl-lists'));
-        appState.lists = old.map(l => ({
-          id: l.id,
-          name: l.name,
-          items: (l.items || []).map(i => ({ id: i.id, name: i.name, checked: i.checked, cat: 'outros', price: 0, qty: 1 })),
-          created: Date.now()
-        }));
-        save();
-      } catch (e) { }
+          // Migrate Lists & Items
+          data.lists.forEach(list => {
+            const listRef = db.collection('users').doc(user.uid).collection('lists').doc(list.id);
+            batch.set(listRef, {
+              name: list.name,
+              created: list.created || Date.now()
+            });
+
+            if (list.items) {
+              list.items.forEach(item => {
+                const itemRef = db.collection('users').doc(user.uid).collection('items').doc(item.id || Date.now().toString());
+                batch.set(itemRef, {
+                  name: item.name,
+                  qty: item.qty || 1,
+                  price: item.price || 0,
+                  cat: item.cat || 'outros',
+                  checked: item.checked || false,
+                  listId: list.id,
+                  created: Date.now()
+                });
+              });
+            }
+          });
+
+          // Migrate Theme
+          if (data.theme || data.mode) {
+            batch.set(db.collection('users').doc(user.uid), {
+              theme: data.theme || 'slate',
+              mode: data.mode || 'dark'
+            }, { merge: true });
+          }
+
+          // Delete old doc
+          batch.delete(oldRef);
+
+          await batch.commit();
+          console.log("Migration complete.");
+        }
+      }
     }
 
-    // --- CORE FUNCTIONS ---
-    function save() {
-      localStorage.setItem('sl-lists-v2', JSON.stringify(appState.lists));
-      localStorage.setItem('sl-theme-v2', appState.theme);
-      localStorage.setItem('sl-mode-v1', appState.mode);
+    // --- STATE MANAGEMENT ---
+    function recalcLists() {
+      // Combine rawLists and rawItems into the structure UI expects
+      appState.lists = appState.rawLists.map(list => {
+        const items = appState.rawItems.filter(i => i.listId === list.id);
+        return { ...list, items: items };
+      });
       updateUI();
     }
 
+    function handleUserAction() {
+      if (appState.user) {
+        if (confirm(`Sair da conta de ${appState.user.displayName}?`)) {
+          auth.signOut();
+        }
+      } else {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        auth.signInWithPopup(provider).catch(e => alert("Erro ao entrar: " + e.message));
+      }
+    }
+
+    function updateUserUI() {
+      const btn = document.getElementById('userBtn');
+      if (appState.user) {
+        btn.classList.add('online');
+        btn.innerHTML = `<img src="${appState.user.photoURL}" alt="User"><div class="user-status"></div>`;
+      } else {
+        btn.classList.remove('online');
+        btn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg><div class="user-status"></div>`;
+      }
+    }
+
+    // --- CORE UI ---
     function updateUI() {
       document.body.setAttribute('data-theme', appState.theme);
-
-      // Handle Mode
       const isLight = appState.mode === 'light';
       document.body.classList.toggle('light-mode', isLight);
 
-      // Toggle Icons
+      // Icons
       const sun = document.querySelector('.sun-icon');
       const moon = document.querySelector('.moon-icon');
       if (sun && moon) {
@@ -679,7 +1029,7 @@
       const mainInput = document.getElementById('mainInput');
 
       if (appState.activeListId) {
-        // Render Items
+        // Render Active List
         const list = appState.lists.find(l => l.id === appState.activeListId);
         if (!list) { appState.activeListId = null; updateUI(); return; }
 
@@ -692,7 +1042,6 @@
       <p style="opacity:0.6;font-size:13px">${list.items.filter(i => i.checked).length}/${list.items.length} itens comprados</p>
     </div>`;
 
-        // Sort: unchecked first
         const sorted = [...list.items].sort((a, b) => a.checked - b.checked);
 
         if (sorted.length === 0) {
@@ -710,7 +1059,7 @@
         <div class="item-check" onclick="toggleItem('${item.id}')">
           ${item.checked ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="4"><polyline points="20 6 9 17 4 12"/></svg>' : ''}
         </div>
-        <div class="item-content">
+        <div class="item-content" onclick="toggleItem('${item.id}')">
           <div class="item-name">${item.name} ${item.qty > 1 ? `<span style="opacity:0.6;font-size:13px">x${item.qty}</span>` : ''}</div>
           <div class="item-details">
             <span class="category-tag">${cat.icon} ${item.cat}</span>
@@ -718,7 +1067,7 @@
           </div>
         </div>
         <div class="item-actions">
-           <button class="action-btn del" onclick="deleteItem('${item.id}')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
+           <button class="action-btn del" onclick="event.stopPropagation(); deleteItem('${item.id}')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
         </div>
       </div>`;
         });
@@ -733,7 +1082,7 @@
         }
 
       } else {
-        // Render Lists
+        // Render Lists Index
         backBtn.style.display = 'none';
         mainInput.placeholder = "Criar nova lista...";
         totalChip.style.display = 'none';
@@ -757,7 +1106,7 @@
       <div class="list-card glass" onclick="openList('${list.id}')">
         <div class="list-header">
           <input class="list-name" value="${list.name}" onclick="event.stopPropagation()" onchange="renameList('${list.id}', this.value)">
-          <button class="action-btn del" onclick="event.stopPropagation(); deleteList('${list.id}')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></button>
+          <button class="action-btn del" onclick="event.stopPropagation(); deleteList('${list.id}')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg></button>
         </div>
         <div class="list-meta">
           <span>${total} itens</span>
@@ -772,6 +1121,70 @@
       }
     }
 
+    // --- FIREBASE AUTH ---
+    auth.onAuthStateChanged(user => {
+      appState.user = user;
+      updateUserUI();
+
+      const loginScreen = document.getElementById('loginScreen');
+
+      if (user) {
+        // Logged In
+        if (loginScreen) loginScreen.classList.add('hidden');
+
+        // Reset State for security
+        appState.rawLists = [];
+        appState.rawItems = [];
+        appState.lists = [];
+
+        // Migration Check
+        checkAndMigrate(user);
+
+        // Listeners
+        if (appState.unsubscribeLists) appState.unsubscribeLists();
+        if (appState.unsubscribeItems) appState.unsubscribeItems();
+
+        appState.unsubscribeLists = db.collection('users').doc(user.uid).collection('lists')
+          .orderBy('created', 'desc')
+          .onSnapshot(snap => {
+            appState.rawLists = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            recalcLists();
+          });
+
+        appState.unsubscribeItems = db.collection('users').doc(user.uid).collection('items')
+          .onSnapshot(snap => {
+            appState.rawItems = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            recalcLists();
+          });
+
+        // Load Theme Preference if exists
+        db.collection('users').doc(user.uid).get().then(doc => {
+          if (doc.exists) {
+            const d = doc.data();
+            if (d.theme) appState.theme = d.theme;
+            if (d.mode) appState.mode = d.mode;
+            updateUI();
+          }
+        });
+
+      } else {
+        // Logged Out
+        if (loginScreen) loginScreen.classList.remove('hidden');
+
+        if (appState.unsubscribeLists) appState.unsubscribeLists();
+        if (appState.unsubscribeItems) appState.unsubscribeItems();
+
+        // Clear Sensitive Data
+        appState.rawLists = [];
+        appState.rawItems = [];
+        appState.activeListId = null;
+
+        // Local Fallback (readonly or guest)
+        const localLists = JSON.parse(localStorage.getItem('sl-lists-v2') || '[]');
+        appState.lists = localLists;
+        updateUI();
+      }
+    });
     // --- ACTIONS ---
     function handleSmartAdd() {
       const input = document.getElementById('mainInput');
@@ -787,15 +1200,15 @@
     }
 
     function createList(name) {
-      const newList = {
-        id: Date.now().toString(36),
+      if (!appState.user) return alert("Faça login para criar listas.");
+
+      db.collection('users').doc(appState.user.uid).collection('lists').add({
         name: name,
-        items: [],
         created: Date.now()
-      };
-      appState.lists.unshift(newList);
-      appState.activeListId = newList.id;
-      save();
+      }).then(docRef => {
+        appState.activeListId = docRef.id;
+        updateUI();
+      });
     }
 
     function openList(id) {
@@ -809,40 +1222,50 @@
     }
 
     function deleteList(id) {
-      if (confirm('Excluir esta lista?')) {
-        appState.lists = appState.lists.filter(l => l.id !== id);
-        save();
+      if (!appState.user) return;
+      if (confirm('Excluir esta lista e todos os itens?')) {
+        const batch = db.batch();
+        // Delete list doc
+        batch.delete(db.collection('users').doc(appState.user.uid).collection('lists').doc(id));
+
+        // Delete items linked to list
+        // Note: Client-side batch limit is 500. Assuming list < 500 items.
+        // For production, this should be done via Cloud Functions or recursive delete tool.
+        const itemsToDelete = appState.rawItems.filter(i => i.listId === id);
+        itemsToDelete.forEach(item => {
+          batch.delete(db.collection('users').doc(appState.user.uid).collection('items').doc(item.id));
+        });
+
+        batch.commit();
+        if (appState.activeListId === id) appState.activeListId = null;
       }
     }
 
     function renameList(id, newName) {
-      const l = appState.lists.find(x => x.id === id);
-      if (l) { l.name = newName; save(); }
+      if (!appState.user) return;
+      db.collection('users').doc(appState.user.uid).collection('lists').doc(id).update({ name: newName });
     }
 
     function addItem(text) {
-      const list = appState.lists.find(l => l.id === appState.activeListId);
-      if (!list) return;
+      if (!appState.user) return;
+      if (!appState.activeListId) return;
 
-      // Smart Parse: "Leite 2un 10.00"
+      // Smart Parse
       let name = text;
       let qty = 1;
       let price = 0;
 
-      // Extract Price (e.g., 5,99 or 5.99)
       const priceMatch = text.match(/(\d+[,.]\d{2})/);
       if (priceMatch) {
         price = parseFloat(priceMatch[0].replace(',', '.'));
         name = name.replace(priceMatch[0], '').trim();
       }
 
-      // Extract Qty (e.g., 2un, 3x)
       const qtyMatch = text.match(/(\d+)\s*(un|x|cx|kg)/i);
       if (qtyMatch) {
         qty = parseInt(qtyMatch[1]);
         name = name.replace(qtyMatch[0], '').trim();
       } else {
-        // Try finding standalone number at start
         const startNum = text.match(/^(\d+)\s+/);
         if (startNum) {
           qty = parseInt(startNum[1]);
@@ -860,30 +1283,29 @@
         }
       }
 
-      list.items.push({
-        id: Date.now().toString(36) + Math.random().toString(36).slice(2),
+      db.collection('users').doc(appState.user.uid).collection('items').add({
         name: name,
         qty: qty,
         price: price,
         cat: cat,
-        checked: false
+        checked: false,
+        listId: appState.activeListId,
+        created: Date.now()
       });
-      save();
     }
 
     function toggleItem(itemId) {
-      const list = appState.lists.find(l => l.id === appState.activeListId);
-      if (list) {
-        const item = list.items.find(i => i.id === itemId);
-        if (item) { item.checked = !item.checked; save(); }
+      if (!appState.user) return;
+      const item = appState.rawItems.find(i => i.id === itemId);
+      if (item) {
+        db.collection('users').doc(appState.user.uid).collection('items').doc(itemId).update({ checked: !item.checked });
       }
     }
 
     function deleteItem(itemId) {
-      const list = appState.lists.find(l => l.id === appState.activeListId);
-      if (list) {
-        list.items = list.items.filter(i => i.id !== itemId);
-        save();
+      if (!appState.user) return;
+      if (confirm('Tem certeza que deseja excluir este item?')) {
+        db.collection('users').doc(appState.user.uid).collection('items').doc(itemId).delete();
       }
     }
 
@@ -898,7 +1320,12 @@
 
     function toggleMode() {
       appState.mode = appState.mode === 'light' ? 'dark' : 'light';
-      save();
+      if (appState.user) {
+        db.collection('users').doc(appState.user.uid).set({ mode: appState.mode }, { merge: true });
+      } else {
+        localStorage.setItem('sl-mode-v1', appState.mode);
+      }
+      updateUI();
     }
 
     function renderThemeGrid() {
@@ -913,8 +1340,13 @@
 
     function setTheme(id) {
       appState.theme = id;
-      save();
+      if (appState.user) {
+        db.collection('users').doc(appState.user.uid).set({ theme: appState.theme }, { merge: true });
+      } else {
+        localStorage.setItem('sl-theme-v2', appState.theme);
+      }
       toggleSettings(); // Close drawer
+      updateUI();
     }
 
     // Input Enter Handler

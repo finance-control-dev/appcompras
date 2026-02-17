@@ -1,7 +1,7 @@
 {
-  "name": "Lista de Compras Premium",
+  "name": "Lista de Compras",
   "short_name": "Compras",
-  "start_url": "./compras.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#1E293B",
   "theme_color": "#1E293B",
